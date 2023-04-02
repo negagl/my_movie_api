@@ -1,9 +1,21 @@
 # To launch the server with Uvicorn, write uvicorn main:app --reload
 from fastapi import FastAPI, Body
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 app.title = 'My Movie API'
 app.version = '0.0.1'
+
+# We use Basemodel for modeling classes in fastapi, this way we can reuse th class instead of writing in each HTTP request the fields we need.
+# Also Optional from Typing module was imported for marking attribute id as optional
+
+
+class Movie(BaseModel):
+    id: Optional[int] = None
+    title: str
+    year: int
+    rating: float
 
 
 movies = [
@@ -60,21 +72,30 @@ def get_movies_by_category(year: int):
 
 # Simple post
 # We have to import Body from fastapi
+# OLD POST, BEFORE BASEMODEL
 
+# @app.post('/movies', tags=['movies'])
+# def create_movie(id: int = Body(), title: str = Body(), year: int = Body(), rating: float = Body()):
+#     new_movie = {'id': id, 'title': title, 'year': year, 'rating': rating}
+#     movies.append(new_movie)
+#     return new_movie
+
+# New POST method using BaseModel class
 @app.post('/movies', tags=['movies'])
-def create_movie(id: int = Body(), title: str = Body(), year: int = Body(), rating: float = Body()):
-    new_movie = {'id': id, 'title': title, 'year': year, 'rating': rating}
-    movies.append(new_movie)
-    return new_movie
-
+def create_movie(movie: Movie):
+    movies.append(movie)
+    return movie
 
 # Simple put. Update the movie
+# We can also apply Modelbase class in the puts
+
+
 @app.put('/movies/{id}', tags=['movies'])
-def update_movie(id: int, title: str = Body(), year: int = Body(), rating: float = Body()):
+def update_movie(id: int, movie: Movie):
     movie = list(filter(lambda x: x['id'] == id, movies))
-    movie[0]['title'] = title
-    movie[0]['year'] = year
-    movie[0]['rating'] = rating
+    movie[0]['title'] = movie.title
+    movie[0]['year'] = movie.year
+    movie[0]['rating'] = movie.rating
     return movie
 
 
